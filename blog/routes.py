@@ -6,7 +6,7 @@ from fileinput import filename
 from flask import render_template, url_for, flash, redirect, request, abort
 from blog import app, db, bcrypt
 from blog.forms import RegistrationForm, LoginForm, UppdateAccountForm, PostForm
-from blog.models import User, Post
+from blog.models import User, Post, Likes
 from flask_login import login_user, current_user, logout_user, login_required
 
 
@@ -152,8 +152,18 @@ def delete_post(post_id):
 def like_post(post_id):
     post = Post.query.get_or_404(post_id)
     post_likes = post.likes
+    likes = Likes.query.all()
+    for like in likes:
+        if like.author == current_user.id:
+            db.session.delete(like)
+            post.likes = post_likes - 1
+            db.session.commit()
+            return redirect(url_for('home'))
+
+    like = Likes(post_id=post.id,
+                 author=current_user.id)
+    db.session.add(like)
+
     post.likes = post_likes + 1
     db.session.commit()
-
-    flash('+1 like!', 'success')
     return redirect(url_for('home'))
