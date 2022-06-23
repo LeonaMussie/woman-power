@@ -145,3 +145,15 @@ def delete_post(post_id):
     db.session.commit()
     flash('You have deleted your post successfully', 'success')
     return redirect(url_for('home'))
+
+
+@app.route("/post/<int:post_id>/like", methods=['POST'])
+@login_required
+def like_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    post_likes = post.likes
+    post.likes = post_likes + 1
+    db.session.commit()
+
+    flash('+1 like!', 'success')
+    return redirect(url_for('home'))
