@@ -96,6 +96,33 @@ def account():
     return render_template('account.html', title='Account', image_file=image_file, form=form)
 
 
+@app.route("/password", methods=['GET', 'POST'])
+@login_required
+def password():
+    image_file = url_for('static', filename='Album/' + current_user.image_file)
+
+    if request.method == 'POST':
+        old_password = request.form.get('old_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        if bcrypt.check_password_hash(current_user.password, old_password):
+            if new_password != confirm_password:
+                flash('Passwords not matching', 'danger')
+            elif new_password == old_password:
+                flash('New password is the same as the old password', 'danger')
+            else:
+                hashed_password = bcrypt.generate_password_hash(
+                    new_password).decode('utf-8')
+                current_user.password = hashed_password
+                db.session.commit()
+                flash('Password updated!', 'success')
+                return redirect(url_for('account'))
+        else:
+            flash('Wrong old password!', 'danger')
+
+    return render_template("password.html", title="Passwords", image_file=image_file)
+
+
 @app.route("/post/new", methods=['GET', 'POST'])
 @login_required
 def new_post():
